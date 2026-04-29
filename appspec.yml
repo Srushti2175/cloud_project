@@ -5,13 +5,16 @@ files:
   - source: api-blsheet
     destination: /home/ec2-user/app
 
+  - source: scripts
+    destination: /home/ec2-user/scripts
+
 hooks:
   AfterInstall:
-    - location: scripts/install.sh
+    - location: /home/ec2-user/scripts/install.sh
       timeout: 300
       runas: ec2-user
 
   ApplicationStart:
-    - location: scripts/start.sh
+    - location: /home/ec2-user/scripts/start.sh
       timeout: 300
       runas: ec2-user
