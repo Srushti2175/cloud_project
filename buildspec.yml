@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - cd api-blsheet
+      - npm install
+
+  build:
+    commands:
+      - echo "Building and packaging backend"
+      - zip -r backend.zip . -x "node_modules/*"
+
+artifacts:
+  files:
+    - api-blsheet/backend.zip
+    - appspec.yml
+    - scripts/**/*
+  name: backend-$(date +%s)
