@@ -10,12 +10,10 @@ phases:
 
   build:
     commands:
-      - echo "Building and packaging backend"
-      - zip -r backend.zip . -x "node_modules/*"
+      - echo "Build completed"
 
 artifacts:
   files:
-    - api-blsheet/backend.zip
-    - appspec.yml
+    - api-blsheet/**/*
     - scripts/**/*
-  name: backend-$(date +%s)
+    - appspec.yml
