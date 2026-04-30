@@ -2,12 +2,12 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions:
-      nodejs: 20
-
+    commands:
+      - cd api-blsheet    # ← make sure this line exists
+      - npm ci
   build:
     commands:
-      - echo "Build completed"
+      - npm run build
 
 artifacts:
   files:

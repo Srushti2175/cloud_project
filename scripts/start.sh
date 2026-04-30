@@ -1,16 +1,29 @@
 #!/bin/bash
-set -e
+# api-blsheet/scripts/start_server.sh
+# Starts the Node.js app with PM2.
 
-source /etc/profile
-export PATH=$PATH:/usr/local/bin
+exec >> /home/ec2-user/app/logs/deploy.log 2>&1
+echo "===== ApplicationStart: $(date) ====="
 
-cd /home/ec2-user/app   # ✅ correct path
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+export PATH="/usr/local/bin:$PATH"
 
-pm2 delete all || true
+cd /home/ec2-user/app
 
-# start app using PM2 (correct way)
-pm2 start "npx tsx api/index.ts" --name blsheet-backend
+echo "Starting blsheet-api with PM2..."
 
+pm2 start dist/server.js \
+  --name blsheet-api \
+  --log /home/ec2-user/app/logs/app.log \
+  --merge-logs \
+  --restart-delay=3000 \
+  --max-restarts=5
+
+# Save PM2 process list so it survives reboots
 pm2 save
 
-exit 0
+echo "PM2 process list:"
+pm2 list
+
+echo "ApplicationStart complete."

@@ -9,12 +9,19 @@ files:
     destination: /home/ec2-user/scripts
 
 hooks:
-  AfterInstall:
-    - location: scripts/install.sh
-      timeout: 300
+   BeforeInstall:
+    - location: scripts/install.sh    # ← your existing file
+      timeout: 60
       runas: root
-
-  ApplicationStart:
-    - location: scripts/start.sh
+  AfterInstall:
+    - location: scripts/install.sh    # ← handles npm install
       timeout: 300
       runas: ec2-user
+  ApplicationStart:
+    - location: scripts/start.sh      # ← your existing file
+      timeout: 60
+      runas: ec2-user
+  ValidateService:
+    - location: scripts/validate_service.sh   # ← add this new file
+      timeout: 60
+      runas: root

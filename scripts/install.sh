@@ -1,13 +1,22 @@
 #!/bin/bash
-set -e
+# api-blsheet/scripts/after_install.sh
+# Runs AFTER new files are copied to the instance.
+# Installs production npm dependencies.
 
-source /etc/profile
-export PATH=$PATH:/usr/local/bin
+exec >> /home/ec2-user/app/logs/deploy.log 2>&1
+echo "===== AfterInstall: $(date) ====="
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+export PATH="/usr/local/bin:$PATH"
 
 cd /home/ec2-user/app
 
-npm install
+echo "Node version: $(node --version)"
+echo "NPM version:  $(npm --version)"
+echo "Installing production dependencies..."
 
-# install globally for runtime
-npm install -g tsx
-npm install -g pm2
+npm install --omit=dev
+
+echo "Installed. node_modules size: $(du -sh node_modules | cut -f1)"
+echo "AfterInstall complete."
