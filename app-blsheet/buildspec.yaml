@@ -7,7 +7,7 @@ version: 0.2
 
 env:
   variables:
-    FRONTEND_BUCKET: "blsheet-2026"
+    FRONTEND_BUCKET: "blsheet-frontend-bucket-12345678"
 
 phases:
 
