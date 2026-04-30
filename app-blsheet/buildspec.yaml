@@ -16,7 +16,6 @@ phases:
   pre_build:
     commands:
       - echo "=== Setting up environment ==="
-      - cd app-blsheet
       - |
         ALB_DNS=$(aws ssm get-parameter \
           --name /blsheet/ALB_DNS \
@@ -24,11 +23,11 @@ phases:
           --output text \
           --region $AWS_DEFAULT_REGION 2>/dev/null || echo "")
         if [ -n "$ALB_DNS" ]; then
-          echo "VITE_BASE_URL=http://${ALB_DNS}/api/v1" > .env.production
+          echo "VITE_BASE_URL=http://${ALB_DNS}/api/v1" > app-blsheet/.env.production
         else
           echo "WARNING: /blsheet/ALB_DNS not found in SSM. VITE_BASE_URL will be empty."
         fi
-      - cat .env.production
+      - cat app-blsheet/.env.production
 
   build:
     commands:
