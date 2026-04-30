@@ -1,0 +1,75 @@
+# app-blsheet/buildspec.yaml
+# CodeBuild spec for the Vite/React frontend.
+# Place this file at: app-blsheet/buildspec.yaml in your monorepo.
+# This build also syncs the output directly to S3 (no CodeDeploy needed for frontend).
+
+version: 0.2
+
+env:
+  variables:
+    FRONTEND_BUCKET: "blsheet-2026"
+
+phases:
+
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "=== Installing frontend dependencies ==="
+      - cd app-blsheet
+      - npm ci --prefer-offline
+
+  pre_build:
+    commands:
+      - echo "=== Setting up environment ==="
+      # Fetch the ALB DNS name from SSM (stored there after infra stack deploy)
+      # OR hardcode it — see the deployment guide for how to set this param
+      - |
+        ALB_DNS=$(aws ssm get-parameter \
+          --name /blsheet/ALB_DNS \
+          --query Parameter.Value \
+          --output text \
+          --region $AWS_DEFAULT_REGION 2>/dev/null || echo "")
+        if [ -n "$ALB_DNS" ]; then
+          echo "VITE_BASE_URL=http://${ALB_DNS}/api/v1" > .env.production
+        else
+          echo "WARNING: /blsheet/ALB_DNS not found in SSM. VITE_BASE_URL will be empty."
+          echo "Run: aws ssm put-parameter --name /blsheet/ALB_DNS --value <your-alb-dns> --type String"
+        fi
+      - cat .env.production
+
+  build:
+    commands:
+      - echo "=== Building React/Vite frontend ==="
+      - npm run build
+      - ls -la dist/
+      - echo "Frontend build completed at $(date)"
+
+  post_build:
+    commands:
+      - echo "=== Syncing to S3 ==="
+      # Sync all files to S3 frontend bucket
+      - |
+        aws s3 sync dist/ s3://${FRONTEND_BUCKET}/ \
+          --delete \
+          --region $AWS_DEFAULT_REGION
+      # Set correct cache headers on index.html so browser always fetches latest
+      - |
+        aws s3 cp s3://${FRONTEND_BUCKET}/index.html \
+          s3://${FRONTEND_BUCKET}/index.html \
+          --metadata-directive REPLACE \
+          --content-type "text/html" \
+          --cache-control "no-cache, no-store, must-revalidate" \
+          --region $AWS_DEFAULT_REGION
+      - echo "Frontend deployed to s3://${FRONTEND_BUCKET}"
+
+# Frontend artifact not needed by CodeDeploy (already synced to S3 above)
+# but we still output it so CodePipeline has something to pass forward
+artifacts:
+  base-directory: app-blsheet/dist
+  files:
+    - "**/*"
+
+cache:
+  paths:
+    - app-blsheet/node_modules/**/*
