@@ -3,8 +3,8 @@ version: 0.2
 phases:
   install:
     commands:
-      - cd api-blsheet    # ← make sure this line exists
-      - npm ci
+      - cd app-blsheet
+      - npm install
   build:
     commands:
       - npm run build
